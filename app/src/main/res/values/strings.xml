@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Moja Spiżarka</string>
+    <string name="product_name">Produkt</string>
+    <string name="product_unit">Jednostka</string>
+    <string name="product_quantity">Ilość</string>
+    <string name="edit">Edytuj</string>
+    <string name="add">Dodaj</string>
+    <string name="delete">Odejmij</string>
+</resources>

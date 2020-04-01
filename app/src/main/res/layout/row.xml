@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="3">
+
+    <TextView
+        android:id="@+id/name"
+        android:text="@string/product_name"
+        android:textColor="@color/listText"
+        android:textSize="@dimen/text_medium"
+        android:padding="@dimen/row_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="start"/>
+
+    <TextView
+        android:id="@+id/quantity"
+        android:text="@string/product_quantity"
+        android:textColor="@color/listText"
+        android:textSize="@dimen/text_medium"
+        android:padding="@dimen/row_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/unit"
+        android:text="@string/product_unit"
+        android:textColor="@color/listText"
+        android:textSize="@dimen/text_medium"
+        android:padding="@dimen/row_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"/>
+
+<!--    <Button-->
+<!--        android:id="@+id/editButton"-->
+<!--        android:text="@string/edit"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="1"-->
+<!--        android:gravity="center"/>-->
+
+</LinearLayout>
