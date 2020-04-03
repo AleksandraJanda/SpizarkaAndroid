@@ -84,9 +84,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:onClick="onDelete"
+        android:onClick="onSubtract"
         android:layout_weight="1"/>
 
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="@dimen/shopping_image"
+        android:layout_height="@dimen/shopping_image"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/shopping"
+        android:layout_margin="@dimen/text_medium"
+        android:contentDescription="@string/buy"
+        android:onClick="onBuyList"/>
 
 </RelativeLayout>

@@ -1,6 +1,7 @@
 package pl.janda.spizarkaandroid._adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +58,12 @@ public class ProductListItemAdapter extends ArrayAdapter<Product> implements Vie
         viewHolder.txtName.setText(product.getName());
         viewHolder.txtUnit.setText(product.getUnit());
         viewHolder.txtQuantity.setText(String.valueOf(product.getQuantity()));
+
+        if(product.getQuantity() == 0){
+            convertView.setBackgroundColor(Color.RED);
+        } else {
+            convertView.setBackgroundColor(Color.TRANSPARENT);
+        }
 
         convertView.setOnClickListener(v -> {
             MainActivity.selectedProductName = product.getName();

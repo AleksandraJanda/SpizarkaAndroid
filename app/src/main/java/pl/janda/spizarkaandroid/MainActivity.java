@@ -10,6 +10,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -19,6 +20,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import pl.janda.spizarkaandroid._adapter.ProductListItemAdapter;
@@ -30,14 +32,17 @@ public class MainActivity extends AppCompatActivity {
     private ProductListItemAdapter adapter;
 
     public static ArrayList<Product> products;
+    public static ArrayList<Product> buyList;
 
     EditText name;
     EditText unit;
     EditText quantity;
+    ImageView logo;
 
     public static String selectedProductName = "";
     public static String selectedProductUnit = "";
     public static String actionProductName = "";
+    private boolean isProductList = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,16 +51,26 @@ public class MainActivity extends AppCompatActivity {
 
         list = findViewById(R.id.list);
         products = new ArrayList<>();
+        buyList = new ArrayList<>();
 
         readData();
 
-        updateList();
+        updateList(products);
 
         name = findViewById(R.id.name);
         unit = findViewById(R.id.unit);
         quantity = findViewById(R.id.quantity);
 
         name.addTextChangedListener(search());
+
+        logo = findViewById(R.id.logo);
+
+        for(Product p: products) {
+            System.out.println("products: " + p.getName());
+        }
+        for(Product p: buyList) {
+            System.out.println("buy: " + p.getName());
+        }
     }
 
     @Override
@@ -69,14 +84,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(MenuItem item){
         if(item.getItemId()==R.id.actionDelete){
-            if(isOnList(actionProductName) >=0) {
-                products.remove(isOnList(actionProductName));
-                updateList();
+            if(isOnList(products, actionProductName) >=0) {
+                products.remove(isOnList(products, actionProductName));
+                buyList.remove(isOnList(buyList, actionProductName));
+                updateList(products);
                 doToast("Usunięto");
             }
 
         } else if(item.getItemId()==R.id.actionBuy){
-            doToast("Dodano do listy zakupów");
+            if(isOnList(products, actionProductName) >=0
+                    && isOnList(buyList, actionProductName) < 0) {
+                buyList.add(products.get(isOnList(products, actionProductName)));
+                doToast("Dodano do listy zakupów");
+            }
         }else{
             return false;
         }
@@ -119,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         onEdit(true);
     }
 
-    public void onDelete(View view) {
+    public void onSubtract(View view) {
         onEdit(false);
     }
 
@@ -129,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
             String productUnit = unit.getText().toString();
             double productQuantity = Double.parseDouble(quantity.getText().toString());
 
-            if (isOnList(productName) < 0) {
+            if (isOnList(products, productName) < 0) {
                 if (add) {
                     products.add(new Product(productName, productUnit, productQuantity));
                 } else {
@@ -140,16 +160,19 @@ public class MainActivity extends AppCompatActivity {
                     productQuantity = -productQuantity;
                 }
 
-                double changedQuantity = products.get(isOnList(productName)).getQuantity() + productQuantity;
+                double changedQuantity = products.get(isOnList(products, productName)).getQuantity() + productQuantity;
 
                 if (changedQuantity <= 0) {
-                    products.remove(isOnList(productName));
+                    products.get(isOnList(products, productName)).setQuantity(0);
+                    buyList.add(new Product(productName, productUnit, changedQuantity));
+//                    products.remove(isOnList(productName));
                 } else {
-                    products.get(isOnList(productName)).setQuantity(changedQuantity);
+                    products.get(isOnList(products, productName)).setQuantity(changedQuantity);
                 }
             }
 
-            updateList();
+//            updateList(products);
+            changeList();
 
             saveData();
 
@@ -163,10 +186,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateList(){
-        Collections.sort(products, (item1, item2) -> item1.getName().compareTo(item2.getName()));
+    private void updateList(ArrayList<Product> currentList){
+        Collections.sort(currentList, (item1, item2) -> item1.getName().compareTo(item2.getName()));
 
-        adapter = new ProductListItemAdapter(products, getApplicationContext());
+        adapter = new ProductListItemAdapter(currentList, getApplicationContext());
         list.setAdapter(adapter);
         adapter.notifyDataSetChanged();
         registerForContextMenu(list);
@@ -174,9 +197,9 @@ public class MainActivity extends AppCompatActivity {
         saveData();
     }
 
-    public static int isOnList(String name) {
-        for(int i = 0; i < products.size(); i++) {
-            if(products.get(i).getName().equals(name)) {
+    public static int isOnList(ArrayList<Product> currentList, String name) {
+        for(int i = 0; i < currentList.size(); i++) {
+            if(currentList.get(i).getName().equals(name)) {
                 return i;
             }
         }
@@ -191,14 +214,19 @@ public class MainActivity extends AppCompatActivity {
 
     // FILE
     private void saveData() {
+        saveDataToFile(products, "sample");
+        saveDataToFile(buyList, "buy");
+    }
+
+    private void saveDataToFile(ArrayList<Product> currentList, String fileName) {
         File file = new File(MainActivity.this.getFilesDir(), "text");
         if (!file.exists()) {
             file.mkdir();
         }
         try {
-            File gpxfile = new File(file, "sample");
+            File gpxfile = new File(file, fileName);
             FileWriter writer = new FileWriter(gpxfile);
-            for(Product p: products) {
+            for(Product p: currentList) {
                 writer.append(p.toString()+"\r\n");
             }
             writer.flush();
@@ -209,16 +237,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void readData() {
+        readDataFromFile(products, "sample");
+        readDataFromFile(buyList, "buy");
+    }
+
+    private void readDataFromFile(ArrayList<Product> currentList, String fileName){
         String text;
-        products = new ArrayList<>();
-        File fileEvents = new File(MainActivity.this.getFilesDir() + "/text/sample");
+//        currentList = new ArrayList<>();
+
+        File fileEvents = new File(MainActivity.this.getFilesDir() + "/text/" + fileName);
         try{
             BufferedReader br = new BufferedReader(new FileReader(fileEvents));
             while((text = br.readLine()) != null) {
                 String[] ss = text.split(",");
                 Product product = new Product(ss[0].trim(), ss[1].trim(),
                         Double.parseDouble(ss[2].replace(";","").trim()));
-                products.add(product);
+                currentList.add(product);
             }
             br.close();
         } catch (IOException e) {
@@ -232,4 +266,19 @@ public class MainActivity extends AppCompatActivity {
         toast.show();
     }
 
+
+    public void onBuyList(View view) {
+        isProductList = !isProductList;
+        changeList();
+    }
+
+    private void changeList() {
+        if(isProductList){
+            updateList(products);
+            logo.setImageResource(R.drawable.shopping);
+        } else {
+            updateList(buyList);
+            logo.setImageResource(R.drawable.check);
+        }
+    }
 }
