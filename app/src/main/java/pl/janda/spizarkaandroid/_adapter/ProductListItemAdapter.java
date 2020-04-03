@@ -1,16 +1,13 @@
 package pl.janda.spizarkaandroid._adapter;
 
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import pl.janda.spizarkaandroid.MainActivity;
 import pl.janda.spizarkaandroid.R;
@@ -61,15 +58,15 @@ public class ProductListItemAdapter extends ArrayAdapter<Product> implements Vie
         viewHolder.txtUnit.setText(product.getUnit());
         viewHolder.txtQuantity.setText(String.valueOf(product.getQuantity()));
 
-//        convertView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                MainActivity.selectedProduct.setName(product.getName());
-//                MainActivity.selectedProduct.setUnit(product.getUnit());
-//                MainActivity.selectedProduct.setQuantity(product.getQuantity());
-//                System.out.println(MainActivity.selectedProduct);
-//            }
-//        });
+        convertView.setOnClickListener(v -> {
+            MainActivity.selectedProductName = product.getName();
+            MainActivity.selectedProductUnit = product.getUnit();
+        });
+
+        convertView.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
+            menu.setHeaderTitle("Wybierz akcję dla: " + product.getName());
+            MainActivity.actionProductName = product.getName();
+        });
 
         return convertView;
     }

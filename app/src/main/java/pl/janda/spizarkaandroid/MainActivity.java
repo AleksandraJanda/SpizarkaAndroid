@@ -1,45 +1,25 @@
 package pl.janda.spizarkaandroid;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.res.AssetManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeSet;
 
 import pl.janda.spizarkaandroid._adapter.ProductListItemAdapter;
 import pl.janda.spizarkaandroid._model.Product;
@@ -49,13 +29,15 @@ public class MainActivity extends AppCompatActivity {
     ListView list;
     private ProductListItemAdapter adapter;
 
-    ArrayList<Product> products;
+    public static ArrayList<Product> products;
 
     EditText name;
     EditText unit;
     EditText quantity;
 
-    SharedPreferences sharedPreferences;
+    public static String selectedProductName = "";
+    public static String selectedProductUnit = "";
+    public static String actionProductName = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,18 +46,41 @@ public class MainActivity extends AppCompatActivity {
 
         list = findViewById(R.id.list);
         products = new ArrayList<>();
-        save();
-//        readData();
-        read();
+
+        readData();
 
         updateList();
-
 
         name = findViewById(R.id.name);
         unit = findViewById(R.id.unit);
         quantity = findViewById(R.id.quantity);
 
         name.addTextChangedListener(search());
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+    {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.delete_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item){
+        if(item.getItemId()==R.id.actionDelete){
+            if(isOnList(actionProductName) >=0) {
+                products.remove(isOnList(actionProductName));
+                updateList();
+                doToast("Usunięto");
+            }
+
+        } else if(item.getItemId()==R.id.actionBuy){
+            doToast("Dodano do listy zakupów");
+        }else{
+            return false;
+        }
+        return true;
     }
 
     public TextWatcher search(){
@@ -103,6 +108,13 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    public void onCopy(View view) {
+        name.setText(selectedProductName);
+        unit.setText(selectedProductUnit);
+        selectedProductName = "";
+        selectedProductUnit = "";
+    }
+
     public void onAdd(View view) {
         onEdit(true);
     }
@@ -112,37 +124,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onEdit(boolean add) {
-        String productName = name.getText().toString();
-        String productUnit = unit.getText().toString();
-        double productQuantity = Double.parseDouble(quantity.getText().toString());
+        if(areEditFieldsFilled()) {
+            String productName = name.getText().toString();
+            String productUnit = unit.getText().toString();
+            double productQuantity = Double.parseDouble(quantity.getText().toString());
 
-        if(isOnList(productName) < 0) {
-            if(add) {
-                products.add(new Product(productName, productUnit, productQuantity));
+            if (isOnList(productName) < 0) {
+                if (add) {
+                    products.add(new Product(productName, productUnit, productQuantity));
+                } else {
+                    doToast("brak produktu na liście");
+                }
             } else {
-                Toast toast = Toast.makeText(getApplicationContext(),"brak produktu na liście",
-                        Toast.LENGTH_SHORT);
-                toast.show();
+                if (!add) {
+                    productQuantity = -productQuantity;
+                }
+
+                double changedQuantity = products.get(isOnList(productName)).getQuantity() + productQuantity;
+
+                if (changedQuantity <= 0) {
+                    products.remove(isOnList(productName));
+                } else {
+                    products.get(isOnList(productName)).setQuantity(changedQuantity);
+                }
             }
+
+            updateList();
+
+            saveData();
+
+            name.setText("");
+            unit.setText("");
+            quantity.setText("");
+
+            name.requestFocus();
         } else {
-            if (!add) {
-                productQuantity = -productQuantity;
-            }
-
-            double changedQuantity = products.get(isOnList(productName)).getQuantity() + productQuantity;
-
-            if (changedQuantity <= 0) {
-                products.remove(isOnList(productName));
-            } else {
-                products.get(isOnList(productName)).setQuantity(changedQuantity);
-            }
+            doToast("wypełnij wszystkie pola");
         }
-
-        updateList();
-
-        name.setText("");
-        unit.setText("");
-        quantity.setText("");
     }
 
     private void updateList(){
@@ -151,11 +169,12 @@ public class MainActivity extends AppCompatActivity {
         adapter = new ProductListItemAdapter(products, getApplicationContext());
         list.setAdapter(adapter);
         adapter.notifyDataSetChanged();
+        registerForContextMenu(list);
 
-        save();
+        saveData();
     }
 
-    private int isOnList(String name) {
+    public static int isOnList(String name) {
         for(int i = 0; i < products.size(); i++) {
             if(products.get(i).getName().equals(name)) {
                 return i;
@@ -164,48 +183,53 @@ public class MainActivity extends AppCompatActivity {
         return -1;
     }
 
+    private boolean areEditFieldsFilled() {
+        return !name.getText().toString().equals("") &&
+                !unit.getText().toString().equals("") &&
+                !quantity.getText().toString().equals("");
+    }
+
     // FILE
+    private void saveData() {
+        File file = new File(MainActivity.this.getFilesDir(), "text");
+        if (!file.exists()) {
+            file.mkdir();
+        }
+        try {
+            File gpxfile = new File(file, "sample");
+            FileWriter writer = new FileWriter(gpxfile);
+            for(Product p: products) {
+                writer.append(p.toString()+"\r\n");
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void readData() {
         String text;
         products = new ArrayList<>();
+        File fileEvents = new File(MainActivity.this.getFilesDir() + "/text/sample");
         try{
-            InputStream inputStream = getAssets().open("items.txt");
-            int size = inputStream.available();
-            byte[] buffer = new byte[size];
-            inputStream.read(buffer);
-            inputStream.close();
-            text = new String(buffer);
-
-            String[] inputArray = text.split(";");
-            for(String s: inputArray) {
-                String[] ss = s.split(",");
-                Product product = new Product(ss[0].trim(), ss[1].trim(), Double.parseDouble(ss[2].trim()));
+            BufferedReader br = new BufferedReader(new FileReader(fileEvents));
+            while((text = br.readLine()) != null) {
+                String[] ss = text.split(",");
+                Product product = new Product(ss[0].trim(), ss[1].trim(),
+                        Double.parseDouble(ss[2].replace(";","").trim()));
                 products.add(product);
             }
+            br.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void save() {
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(products);
-
-        editor.putString("products", json);
-        editor.commit();
-
-        read();
-    }
-
-    private void read() {
-        String response = sharedPreferences.getString("products", "");
-        Gson gson1 = new Gson();
-        products = gson1.fromJson(response, new TypeToken<List<Product>>(){}.getType());
-        for(Product p: products) {
-            System.out.println(p);
-        }
+    // TOAST
+    private void doToast(String msg){
+        Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT);
+        toast.show();
     }
 
 }
