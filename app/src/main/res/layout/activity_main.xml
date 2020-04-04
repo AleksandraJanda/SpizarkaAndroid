@@ -67,25 +67,59 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:weightSum="2">
+        android:weightSum="4">
 
-    <Button
-        android:id="@+id/addButton"
-        android:text="@string/add"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:onClick="onAdd"
-        android:layout_weight="1"/>
+        <Button
+            android:id="@+id/deleteButton"
+            android:text="@string/delete"
+            android:textSize="@dimen/text_medium"
+            android:textColor="@color/white"
+            android:background="@color/colorPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onDelete"
+            android:layout_margin="@dimen/button_margin"
+            android:layout_weight="1"/>
 
-    <Button
-        android:id="@+id/deleteButton"
-        android:text="@string/delete"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:onClick="onSubtract"
-        android:layout_weight="1"/>
+        <Button
+            android:id="@+id/addButton"
+            android:text="@string/add"
+            android:textSize="@dimen/text_medium"
+            android:textColor="@color/white"
+            android:background="@color/colorPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onAdd"
+            android:layout_margin="@dimen/button_margin"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/subtractButton"
+            android:text="@string/subtract"
+            android:textSize="@dimen/text_medium"
+            android:textColor="@color/white"
+            android:background="@color/colorPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onSubtract"
+            android:layout_margin="@dimen/button_margin"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/moveButton"
+            android:text="@string/move"
+            android:textSize="@dimen/text_medium"
+            android:textColor="@color/white"
+            android:background="@color/colorPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="onMove"
+            android:layout_margin="@dimen/button_margin"
+            android:layout_weight="1"/>
 
     </LinearLayout>
 

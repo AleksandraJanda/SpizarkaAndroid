@@ -4,8 +4,11 @@
     <string name="product_unit">Jednostka</string>
     <string name="product_quantity">Ilość</string>
     <string name="edit">Edytuj</string>
-    <string name="add">Dodaj</string>
-    <string name="delete">Odejmij</string>
+    <string name="add">+</string>
+    <string name="subtract">-</string>
+    <string name="delete">x</string>
+    <string name="move">=></string>
     <string name="delete2">Usuń z listy</string>
     <string name="buy">Dodaj do listy zakupów</string>
+    <string name="store">Dodaj do listy produktów</string>
 </resources>

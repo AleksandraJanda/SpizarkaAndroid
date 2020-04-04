@@ -6,6 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ public class ProductListItemAdapter extends ArrayAdapter<Product> implements Vie
         TextView txtName;
         TextView txtUnit;
         TextView txtQuantity;
+        CheckBox checkBox;
     }
 
     public ProductListItemAdapter(ArrayList<Product> data, Context context) {
@@ -50,6 +54,7 @@ public class ProductListItemAdapter extends ArrayAdapter<Product> implements Vie
             viewHolder.txtName = convertView.findViewById(R.id.name);
             viewHolder.txtUnit = convertView.findViewById(R.id.unit);
             viewHolder.txtQuantity = convertView.findViewById(R.id.quantity);
+            viewHolder.checkBox = convertView.findViewById(R.id.checkbox);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
@@ -59,8 +64,20 @@ public class ProductListItemAdapter extends ArrayAdapter<Product> implements Vie
         viewHolder.txtUnit.setText(product.getUnit());
         viewHolder.txtQuantity.setText(String.valueOf(product.getQuantity()));
 
+        if(MainActivity.isOnList(MainActivity.moveList, product.getName()) >= 0) {
+            viewHolder.checkBox.setChecked(true);
+        } else {
+            viewHolder.checkBox.setChecked(false);
+        }
+
+        viewHolder.checkBox.setOnClickListener(v -> {
+            if(viewHolder.checkBox.isChecked()) {
+                MainActivity.moveList.add(new Product(product.getName(), product.getUnit(), product.getQuantity()));
+            }
+        });
+
         if(product.getQuantity() == 0){
-            convertView.setBackgroundColor(Color.RED);
+            convertView.setBackgroundColor(Color.parseColor("#ffa372"));
         } else {
             convertView.setBackgroundColor(Color.TRANSPARENT);
         }
@@ -70,10 +87,10 @@ public class ProductListItemAdapter extends ArrayAdapter<Product> implements Vie
             MainActivity.selectedProductUnit = product.getUnit();
         });
 
-        convertView.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
-            menu.setHeaderTitle("Wybierz akcję dla: " + product.getName());
-            MainActivity.actionProductName = product.getName();
-        });
+//        convertView.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
+//            menu.setHeaderTitle("Wybierz akcję dla: " + product.getName());
+//            MainActivity.actionProductName = product.getName();
+//        });
 
         return convertView;
     }

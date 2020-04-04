@@ -1,5 +1,6 @@
 <resources>
     <dimen name="row_padding">10dp</dimen>
+    <dimen name="button_margin">5dp</dimen>
     <dimen name="text_medium">20sp</dimen>
     <dimen name="shopping_image">70dp</dimen>
 </resources>

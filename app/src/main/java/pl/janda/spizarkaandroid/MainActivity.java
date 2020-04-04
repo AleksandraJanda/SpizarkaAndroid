@@ -20,7 +20,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 import pl.janda.spizarkaandroid._adapter.ProductListItemAdapter;
@@ -33,11 +32,14 @@ public class MainActivity extends AppCompatActivity {
 
     public static ArrayList<Product> products;
     public static ArrayList<Product> buyList;
+    public static ArrayList<Product> moveList;
 
     EditText name;
     EditText unit;
     EditText quantity;
     ImageView logo;
+
+    MenuItem buyOption;
 
     public static String selectedProductName = "";
     public static String selectedProductUnit = "";
@@ -52,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         list = findViewById(R.id.list);
         products = new ArrayList<>();
         buyList = new ArrayList<>();
+        moveList = new ArrayList<>();
 
         readData();
 
@@ -65,43 +68,50 @@ public class MainActivity extends AppCompatActivity {
 
         logo = findViewById(R.id.logo);
 
-        for(Product p: products) {
-            System.out.println("products: " + p.getName());
-        }
-        for(Product p: buyList) {
-            System.out.println("buy: " + p.getName());
-        }
+        buyOption = findViewById(R.id.actionBuy);
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
-    {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.delete_menu, menu);
-    }
+//    @Override
+//    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+//    {
+//        super.onCreateContextMenu(menu, v, menuInfo);
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.product_menu, menu);
+//    }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item){
-        if(item.getItemId()==R.id.actionDelete){
-            if(isOnList(products, actionProductName) >=0) {
-                products.remove(isOnList(products, actionProductName));
-                buyList.remove(isOnList(buyList, actionProductName));
-                updateList(products);
-                doToast("Usunięto");
-            }
-
-        } else if(item.getItemId()==R.id.actionBuy){
-            if(isOnList(products, actionProductName) >=0
-                    && isOnList(buyList, actionProductName) < 0) {
-                buyList.add(products.get(isOnList(products, actionProductName)));
-                doToast("Dodano do listy zakupów");
-            }
-        }else{
-            return false;
-        }
-        return true;
-    }
+//    @Override
+//    public boolean onContextItemSelected(MenuItem item){
+//        if(item.getItemId()==R.id.actionDelete){
+//            if(isProductList) {
+//                deleteProductFromList(products);
+//            } else {
+//                deleteProductFromList(buyList);
+//            }
+//        } else if(item.getItemId()==R.id.actionBuy){
+//            if(isOnList(products, actionProductName) >=0
+//                    && isOnList(buyList, actionProductName) < 0) {
+//                buyList.add(products.get(isOnList(products, actionProductName)));
+//                doToast("Dodano do listy zakupów");
+//            }
+//        } else if(item.getItemId()==R.id.actionStore){
+//            if(isOnList(products, actionProductName) >=0
+//                    && isOnList(buyList, actionProductName) < 0) {
+//                products.add(buyList.get(isOnList(buyList, actionProductName)));
+//                doToast("Dodano do listy produktów");
+//            }
+//        } else {
+//            return false;
+//        }
+//        return true;
+//    }
+//
+//    private void deleteProductFromList(ArrayList<Product> currentList) {
+//        if(isOnList(currentList, actionProductName) >=0) {
+//            currentList.remove(isOnList(currentList, actionProductName));
+//            updateList(currentList);
+//            doToast("Usunięto");
+//        }
+//    }
 
     public TextWatcher search(){
         return new TextWatcher() {
@@ -135,6 +145,49 @@ public class MainActivity extends AppCompatActivity {
         selectedProductUnit = "";
     }
 
+    public void onMove(View view) {
+        if(moveList.size() > 0) {
+            if (isProductList) {
+                for (Product p : moveList) {
+                    listEdit(buyList, true, p.getName(), p.getUnit(), p.getQuantity());
+                }
+                for (Product p : moveList) {
+                    products.remove(products.get(isOnList(products, p.getName())));
+                }
+                updateList(products);
+                doToast("Przeniesiono na listę zakupów");
+            } else {
+                for (Product p : moveList) {
+                    listEdit(products, true, p.getName(), p.getUnit(), p.getQuantity());
+                }
+                for (Product p : moveList) {
+                    buyList.remove(buyList.get(isOnList(buyList, p.getName())));
+                }
+                updateList(buyList);
+                doToast("Przeniesiono na listę produktów");
+            }
+        }
+        moveList = new ArrayList<>();
+    }
+
+    public void onDelete(View view) {
+        if(moveList.size() > 0) {
+            if (isProductList) {
+                for (Product p : moveList) {
+                    products.remove(products.get(isOnList(products, p.getName())));
+                }
+                updateList(products);
+            } else {
+                for (Product p : moveList) {
+                    buyList.remove(buyList.get(isOnList(buyList, p.getName())));
+                }
+                updateList(buyList);
+            }
+            doToast("Usunięto produkty");
+        }
+        moveList = new ArrayList<>();
+    }
+
     public void onAdd(View view) {
         onEdit(true);
     }
@@ -149,29 +202,12 @@ public class MainActivity extends AppCompatActivity {
             String productUnit = unit.getText().toString();
             double productQuantity = Double.parseDouble(quantity.getText().toString());
 
-            if (isOnList(products, productName) < 0) {
-                if (add) {
-                    products.add(new Product(productName, productUnit, productQuantity));
-                } else {
-                    doToast("brak produktu na liście");
-                }
+            if(isProductList) {
+                listEdit(products, add, productName, productUnit, productQuantity);
             } else {
-                if (!add) {
-                    productQuantity = -productQuantity;
-                }
-
-                double changedQuantity = products.get(isOnList(products, productName)).getQuantity() + productQuantity;
-
-                if (changedQuantity <= 0) {
-                    products.get(isOnList(products, productName)).setQuantity(0);
-                    buyList.add(new Product(productName, productUnit, changedQuantity));
-//                    products.remove(isOnList(productName));
-                } else {
-                    products.get(isOnList(products, productName)).setQuantity(changedQuantity);
-                }
+                listEdit(buyList, add, productName, productUnit, productQuantity);
             }
 
-//            updateList(products);
             changeList();
 
             saveData();
@@ -182,7 +218,31 @@ public class MainActivity extends AppCompatActivity {
 
             name.requestFocus();
         } else {
-            doToast("wypełnij wszystkie pola");
+            doToast("Wypełnij wszystkie pola");
+        }
+    }
+
+    private void listEdit(ArrayList<Product> currentList, boolean add,
+                          String productName, String productUnit, double productQuantity) {
+        int position = isOnList(currentList, productName);
+        if (position < 0) {
+            if (add) {
+                currentList.add(new Product(productName, productUnit, productQuantity));
+            } else {
+                doToast("Brak produktu na liście");
+            }
+        } else {
+            if (!add) {
+                productQuantity = -productQuantity;
+            }
+
+            double changedQuantity = currentList.get(position).getQuantity() + productQuantity;
+
+            if (changedQuantity <= 0) {
+                currentList.get(position).setQuantity(0);
+            } else {
+                currentList.get(position).setQuantity(changedQuantity);
+            }
         }
     }
 
@@ -276,9 +336,12 @@ public class MainActivity extends AppCompatActivity {
         if(isProductList){
             updateList(products);
             logo.setImageResource(R.drawable.shopping);
+            doToast("Wyświetlasz zapasy");
         } else {
             updateList(buyList);
             logo.setImageResource(R.drawable.check);
+            doToast("Wyświetlasz listę zakupów");
         }
+        moveList = new ArrayList<>();
     }
 }
