@@ -7,8 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -86,11 +84,6 @@ public class ProductListItemAdapter extends ArrayAdapter<Product> implements Vie
             MainActivity.selectedProductName = product.getName();
             MainActivity.selectedProductUnit = product.getUnit();
         });
-
-//        convertView.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
-//            menu.setHeaderTitle("Wybierz akcję dla: " + product.getName());
-//            MainActivity.actionProductName = product.getName();
-//        });
 
         return convertView;
     }

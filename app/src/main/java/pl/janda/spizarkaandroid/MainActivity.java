@@ -5,13 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.ContextMenu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -34,16 +33,14 @@ public class MainActivity extends AppCompatActivity {
     public static ArrayList<Product> buyList;
     public static ArrayList<Product> moveList;
 
+    TextView listName;
     EditText name;
     EditText unit;
     EditText quantity;
     ImageView logo;
 
-    MenuItem buyOption;
-
     public static String selectedProductName = "";
     public static String selectedProductUnit = "";
-    public static String actionProductName = "";
     private boolean isProductList = true;
 
     @Override
@@ -56,62 +53,22 @@ public class MainActivity extends AppCompatActivity {
         buyList = new ArrayList<>();
         moveList = new ArrayList<>();
 
-        readData();
+        try {
+            readData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         updateList(products);
 
         name = findViewById(R.id.name);
         unit = findViewById(R.id.unit);
         quantity = findViewById(R.id.quantity);
+        logo = findViewById(R.id.logo);
+        listName = findViewById(R.id.listName);
 
         name.addTextChangedListener(search());
-
-        logo = findViewById(R.id.logo);
-
-        buyOption = findViewById(R.id.actionBuy);
     }
-
-//    @Override
-//    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
-//    {
-//        super.onCreateContextMenu(menu, v, menuInfo);
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.product_menu, menu);
-//    }
-
-//    @Override
-//    public boolean onContextItemSelected(MenuItem item){
-//        if(item.getItemId()==R.id.actionDelete){
-//            if(isProductList) {
-//                deleteProductFromList(products);
-//            } else {
-//                deleteProductFromList(buyList);
-//            }
-//        } else if(item.getItemId()==R.id.actionBuy){
-//            if(isOnList(products, actionProductName) >=0
-//                    && isOnList(buyList, actionProductName) < 0) {
-//                buyList.add(products.get(isOnList(products, actionProductName)));
-//                doToast("Dodano do listy zakupów");
-//            }
-//        } else if(item.getItemId()==R.id.actionStore){
-//            if(isOnList(products, actionProductName) >=0
-//                    && isOnList(buyList, actionProductName) < 0) {
-//                products.add(buyList.get(isOnList(buyList, actionProductName)));
-//                doToast("Dodano do listy produktów");
-//            }
-//        } else {
-//            return false;
-//        }
-//        return true;
-//    }
-//
-//    private void deleteProductFromList(ArrayList<Product> currentList) {
-//        if(isOnList(currentList, actionProductName) >=0) {
-//            currentList.remove(isOnList(currentList, actionProductName));
-//            updateList(currentList);
-//            doToast("Usunięto");
-//        }
-//    }
 
     public TextWatcher search(){
         return new TextWatcher() {
@@ -138,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    // BUTTONS ACTIONS
     public void onCopy(View view) {
         name.setText(selectedProductName);
         unit.setText(selectedProductUnit);
@@ -149,13 +107,10 @@ public class MainActivity extends AppCompatActivity {
         if(moveList.size() > 0) {
             if (isProductList) {
                 for (Product p : moveList) {
-                    listEdit(buyList, true, p.getName(), p.getUnit(), p.getQuantity());
-                }
-                for (Product p : moveList) {
-                    products.remove(products.get(isOnList(products, p.getName())));
+                    listEdit(buyList, true, p.getName(), p.getUnit(), 0);
                 }
                 updateList(products);
-                doToast("Przeniesiono na listę zakupów");
+                doToast("Dodano do listy zakupów");
             } else {
                 for (Product p : moveList) {
                     listEdit(products, true, p.getName(), p.getUnit(), p.getQuantity());
@@ -164,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                     buyList.remove(buyList.get(isOnList(buyList, p.getName())));
                 }
                 updateList(buyList);
-                doToast("Przeniesiono na listę produktów");
+                doToast("Przeniesiono do zapasów");
             }
         }
         moveList = new ArrayList<>();
@@ -222,6 +177,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void onBuyList(View view) {
+        isProductList = !isProductList;
+        changeList();
+    }
+
+    // BUTTONS ACTIONS - HELPERS
     private void listEdit(ArrayList<Product> currentList, boolean add,
                           String productName, String productUnit, double productQuantity) {
         int position = isOnList(currentList, productName);
@@ -272,6 +233,21 @@ public class MainActivity extends AppCompatActivity {
                 !quantity.getText().toString().equals("");
     }
 
+    private void changeList() {
+        if(isProductList){
+            updateList(products);
+            logo.setImageResource(R.drawable.shopping);
+            doToast("Wyświetlasz zapasy");
+            listName.setText(R.string.listName);
+        } else {
+            updateList(buyList);
+            logo.setImageResource(R.drawable.check);
+            doToast("Wyświetlasz listę zakupów");
+            listName.setText(R.string.listName2);
+        }
+        moveList = new ArrayList<>();
+    }
+
     // FILE
     private void saveData() {
         saveDataToFile(products, "sample");
@@ -303,7 +279,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void readDataFromFile(ArrayList<Product> currentList, String fileName){
         String text;
-//        currentList = new ArrayList<>();
 
         File fileEvents = new File(MainActivity.this.getFilesDir() + "/text/" + fileName);
         try{
@@ -324,24 +299,5 @@ public class MainActivity extends AppCompatActivity {
     private void doToast(String msg){
         Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT);
         toast.show();
-    }
-
-
-    public void onBuyList(View view) {
-        isProductList = !isProductList;
-        changeList();
-    }
-
-    private void changeList() {
-        if(isProductList){
-            updateList(products);
-            logo.setImageResource(R.drawable.shopping);
-            doToast("Wyświetlasz zapasy");
-        } else {
-            updateList(buyList);
-            logo.setImageResource(R.drawable.check);
-            doToast("Wyświetlasz listę zakupów");
-        }
-        moveList = new ArrayList<>();
     }
 }

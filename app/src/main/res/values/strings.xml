@@ -8,7 +8,7 @@
     <string name="subtract">-</string>
     <string name="delete">x</string>
     <string name="move">=></string>
-    <string name="delete2">Usuń z listy</string>
-    <string name="buy">Dodaj do listy zakupów</string>
-    <string name="store">Dodaj do listy produktów</string>
+    <string name="listChange">Zmiana wyświetlanej listy</string>
+    <string name="listName">Lista zapasów</string>
+    <string name="listName2">Lista zakupów</string>
 </resources>

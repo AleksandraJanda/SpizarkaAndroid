@@ -1,4 +1,0 @@
-mąka,kg,2;
-mleko,L,3;
-woda,L,1.75;
-masło,szt,2;
