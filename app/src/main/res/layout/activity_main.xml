@@ -8,14 +8,27 @@
     <TextView
         android:id="@+id/listName"
         android:text="@string/listName"
+        android:layout_marginTop="@dimen/row_padding"
         android:textColor="@color/listText"
         android:textSize="@dimen/text_large"
         android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="@dimen/shopping_image"
+        android:layout_height="@dimen/shopping_image"
+        android:layout_margin="@dimen/row_padding"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/shopping"
+        android:contentDescription="@string/listChange"
+        android:onClick="onBuyList"/>
+
     <LinearLayout
         android:id="@+id/add"
+        android:layout_marginTop="@dimen/text_medium"
         android:layout_below="@id/listName"
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -131,16 +144,5 @@
             android:layout_weight="1"/>
 
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="@dimen/shopping_image"
-        android:layout_height="@dimen/shopping_image"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:src="@drawable/shopping"
-        android:layout_margin="@dimen/text_medium"
-        android:contentDescription="@string/listChange"
-        android:onClick="onBuyList"/>
 
 </RelativeLayout>
